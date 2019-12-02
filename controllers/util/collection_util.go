@@ -85,6 +85,59 @@ func CreateCollecttionAlias(cloud string, alias string, aliasType string, collec
 
 }
 
+// CreateShard to request the creation of a shard to be created for a given collection
+func CreateShard(cloud string, collection string, shard string, createNodeSet []string, namespace string) (success bool, err error) {
+	queryParams := url.Values{}
+	NodeSetArray := strings.Join(createNodeSet, ",")
+	queryParams.Add("action", "CREATESHARD")
+	queryParams.Add("shard", shard)
+	queryParams.Add("collection", collection)
+	queryParams.Add("createNodeSet", NodeSetArray)
+
+	resp := &SolrAsyncResponse{}
+
+	log.Info("Calling to create shard", "namespace", namespace, "cloud", cloud, "shard", shard, "collections", collection, "createNodeSet", createNodeSet)
+	err = CallCollectionsApi(cloud, namespace, queryParams, resp)
+
+	if err == nil {
+		if resp.ResponseHeader.Status == 0 {
+			log.Info("ResponseHeader.Status", "ResponseHeader.Status", resp.ResponseHeader.Status)
+			success = true
+		}
+	} else {
+		log.Error(err, "Error creating shard", "namespace", namespace, "cloud", cloud, "shard", shard, "collections", collection, "createNodeSet", createNodeSet)
+		log.Info("API call debug", "queryParams", queryParams)
+	}
+
+	return success, err
+
+}
+
+// DeleteShard to request the deletion of a shard for a given collection
+func DeleteShard(cloud string, collection string, shard string, namespace string) (success bool, err error) {
+	queryParams := url.Values{}
+	queryParams.Add("action", "DELETESHARD")
+	queryParams.Add("shard", shard)
+	queryParams.Add("collection", collection)
+
+	resp := &SolrAsyncResponse{}
+
+	log.Info("Calling to delete shard", "namespace", namespace, "cloud", cloud, "shard", shard, "collection", collection)
+	err = CallCollectionsApi(cloud, namespace, queryParams, resp)
+
+	if err == nil {
+		if resp.ResponseHeader.Status == 0 {
+			log.Info("ResponseHeader.Status", "ResponseHeader.Status", resp.ResponseHeader.Status)
+			success = true
+		}
+	} else {
+		log.Error(err, "Error deleting shard", "namespace", namespace, "cloud", cloud, "shard", shard, "collection", collection)
+	}
+
+	return success, err
+
+}
+
 // DeleteCollection to request collection deletion on SolrCloud
 func DeleteCollection(cloud string, collection string, namespace string) (success bool, err error) {
 	queryParams := url.Values{}
@@ -101,7 +154,7 @@ func DeleteCollection(cloud string, collection string, namespace string) (succes
 			success = true
 		}
 	} else {
-		log.Error(err, "Error deleting collection", "namespace", namespace, "cloud", cloud, "collection")
+		log.Error(err, "Error deleting collection", "namespace", namespace, "cloud", cloud, "collection", collection)
 	}
 
 	return success, err
@@ -219,6 +272,27 @@ func CheckIfCollectionExists(cloud string, collection string, namespace string) 
 	return success
 }
 
+// CheckIfShardExists to request information on a given shard for a collection
+func CheckIfShardExists(cloud string, collection string, shard string, namespace string) (success bool) {
+	queryParams := url.Values{}
+	queryParams.Add("action", "CLUSTERSTATUS")
+	queryParams.Add("collection", collection)
+	queryParams.Add("shard", shard)
+
+	resp := &SolrClusterStatusResponse{}
+
+	log.Info("Calling to gather shard information", "namespace", namespace, "cloud", cloud, "collection", collection, "shard", shard)
+	err := CallCollectionsApi(cloud, namespace, queryParams, resp)
+
+	if err == nil {
+		success = true
+	} else {
+		log.Info("Shard for collection doesn't exist", "namespace", namespace, "cloud", cloud, "collection", collection, "shard", shard, "response", resp.Error.Msg)
+	}
+
+	return success
+}
+
 // CurrentCollectionAliasDetails will return a success if details found for an alias and comma separated string of associated collections
 func CurrentCollectionAliasDetails(cloud string, alias string, namespace string) (success bool, collections string) {
 	queryParams := url.Values{}
@@ -270,13 +344,19 @@ type SolrCollectionsListResponse struct {
 }
 
 type SolrClusterStatusResponse struct {
-	ResponseHeader SolrCollectionResponseHeader `json:"responseHeader"`
-
-	Cluster SolrClusterStatusCluster `json:"cluster"`
+	ResponseHeader SolrCollectionResponseHeader   `json:"responseHeader"`
+	Error          SolrClusterStatusResponseError `json:"error"`
+	Cluster        SolrClusterStatusCluster       `json:"cluster"`
 }
 
 type SolrClusterStatusCluster struct {
 	Collections map[string]interface{} `json:"collections"`
+}
+
+type SolrClusterStatusResponseError struct {
+	Metadata []string `json:"metadata"`
+	Msg      string   `json:"msg"`
+	Code     int      `json:"code"`
 }
 
 // ContainsString helper function to test string contains

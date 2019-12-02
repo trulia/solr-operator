@@ -17,3 +17,6 @@ resources:
 - group: solr
   version: v1beta1
   kind: SolrCollectionAlias
+- group: solr
+  version: v1beta1
+  kind: SolrShard

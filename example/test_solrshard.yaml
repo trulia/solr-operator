@@ -1,0 +1,12 @@
+apiVersion: solr.bloomberg.com/v1beta1
+kind: SolrShard
+metadata:
+  name: example-extra-shard
+  namespace: default
+spec:
+  solrCloud: example
+  collection: example-collection-3-implicit
+  shard: example-extra-shard
+  createNodeSet: 
+    - "default-example-solrcloud-2.ing.local.domain:80_solr"
+    - "default-example-solrcloud-1.ing.local.domain:80_solr"

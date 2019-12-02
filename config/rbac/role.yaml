@@ -267,6 +267,26 @@ rules:
   - patch
   - update
 - apiGroups:
+  - solr.bloomberg.com
+  resources:
+  - solrshards
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - solr.bloomberg.com
+  resources:
+  - solrshards/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
   - zookeeper.pravega.io
   resources:
   - zookeeperclusters

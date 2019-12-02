@@ -1,0 +1,79 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.2
+  creationTimestamp: null
+  name: solrshards.solr.bloomberg.com
+spec:
+  group: solr.bloomberg.com
+  names:
+    kind: SolrShard
+    listKind: SolrShardList
+    plural: solrshards
+    singular: solrshard
+  scope: ""
+  validation:
+    openAPIV3Schema:
+      description: SolrShard is the Schema for the solrshards API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: SolrShardSpec defines the desired state of SolrShard
+          properties:
+            collection:
+              description: A reference to the collection to create the shard for
+              type: string
+            createNodeSet:
+              description: A referenec to the node set to create the shard on
+              items:
+                type: string
+              type: array
+            solrCloud:
+              description: A reference to the SolrCloud to create the shard on
+              type: string
+          required:
+          - collection
+          - createNodeSet
+          - solrCloud
+          type: object
+        status:
+          description: SolrShardStatus defines the observed state of SolrShard
+          properties:
+            created:
+              description: Status of the shard
+              type: boolean
+            createdTime:
+              format: date-time
+              type: string
+            nodeSet:
+              description: Node set that the shard is for
+              items:
+                type: string
+              type: array
+          type: object
+      type: object
+  version: v1beta1
+  versions:
+  - name: v1beta1
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
